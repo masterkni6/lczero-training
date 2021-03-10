@@ -615,7 +615,7 @@ class TFProcess:
         # Run training for this batch
         grads = None
         for _ in range(batch_splits):
-            x, y, z, q = next(self.train_iter)
+            x, y, z, q, m = next(self.train_iter)
             if self.strategy is not None:
                 policy_loss, value_loss, mse_loss, moves_left_loss, reg_term, new_grads = self.strategy_process_inner_loop(x, y, z, q, m)
             else:
