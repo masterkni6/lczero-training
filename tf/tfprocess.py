@@ -536,13 +536,14 @@ class TFProcess:
             total_loss, self.model.trainable_weights)
 
     @tf.function()
-    def strategy_process_inner_loop(self, x, y, z, q):
-        policy_loss, value_loss, mse_loss, reg_term, new_grads = self.strategy.experimental_run_v2(self.process_inner_loop, args=(x, y, z, q))
+    def strategy_process_inner_loop(self, x, y, z, q, m):
+        policy_loss, value_loss, mse_loss, reg_term, new_grads = self.strategy.experimental_run_v2(self.process_inner_loop, args=(x, y, z, q, m))
         policy_loss = self.strategy.reduce(tf.distribute.ReduceOp.MEAN, policy_loss, axis=None)
         value_loss = self.strategy.reduce(tf.distribute.ReduceOp.MEAN, value_loss, axis=None)
         mse_loss = self.strategy.reduce(tf.distribute.ReduceOp.MEAN, mse_loss, axis=None)
+        moves_left_loss = self.strategy.reduce(tf.distribute.ReduceOp.MEAN, moves_left_loss, axis=None)
         reg_term = self.strategy.reduce(tf.distribute.ReduceOp.MEAN, reg_term, axis=None)
-        return policy_loss, value_loss, mse_loss, reg_term, new_grads
+        return policy_loss, value_loss, mse_loss, moves_left_loss, reg_term, new_grads
 
     def apply_grads(self, grads, batch_splits):
         if self.loss_scale != 1:
@@ -616,7 +617,7 @@ class TFProcess:
         for _ in range(batch_splits):
             x, y, z, q = next(self.train_iter)
             if self.strategy is not None:
-                policy_loss, value_loss, mse_loss, reg_term, new_grads = self.strategy_process_inner_loop(x, y, z, q, m)
+                policy_loss, value_loss, mse_loss, moves_left_loss, reg_term, new_grads = self.strategy_process_inner_loop(x, y, z, q, m)
             else:
                 policy_loss, value_loss, mse_loss, moves_left_loss, reg_term, new_grads = self.process_inner_loop(x, y, z, q, m)
             if not grads:
