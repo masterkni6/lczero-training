@@ -449,7 +449,7 @@ def main(cmd):
             output_types=(tf.string, tf.string, tf.string, tf.string,
                           tf.string))
         train_dataset = train_dataset.map(ChunkParser.parse_function)
-        train_dataset = train_dataset.prefetch(4)
+        #train_dataset = train_dataset.prefetch(4)
 
     shuffle_size = int(shuffle_size * (1.0 - train_ratio))
     if experimental_parser:
@@ -471,7 +471,7 @@ def main(cmd):
             output_types=(tf.string, tf.string, tf.string, tf.string,
                           tf.string))
         test_dataset = test_dataset.map(ChunkParser.parse_function)
-        test_dataset = test_dataset.prefetch(4)
+        #test_dataset = test_dataset.prefetch(4)
 
     validation_dataset = None
     if 'input_validation' in cfg['dataset']:

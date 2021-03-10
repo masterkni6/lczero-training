@@ -161,7 +161,7 @@ class TFProcess:
             'renorm_momentum', 0.99)
 
         if self.cfg['gpu'] == 'all':
-            self.strategy = tf.distribute.MirroredStrategy()
+            self.strategy = tf.distribute.MirroredStrategy(cross_device_ops=tf.distribute.ReductionToOneDevice())
             tf.distribute.experimental_set_strategy(self.strategy)
         else:
             gpus = tf.config.experimental.list_physical_devices('GPU')
