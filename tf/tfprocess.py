@@ -18,6 +18,7 @@
 
 import numpy as np
 import os
+import math
 import random
 import tensorflow as tf
 import time
@@ -131,6 +132,8 @@ class TFProcess:
 
         if policy_head == "classical":
             self.POLICY_HEAD = pb.NetworkFormat.POLICY_CLASSICAL
+        elif policy_head == "ra":
+            self.POLICY_HEAD = pb.NetworkFormat.POLICY_RA
         elif policy_head == "convolution":
             self.POLICY_HEAD = pb.NetworkFormat.POLICY_CONVOLUTION
         else:
@@ -1119,7 +1122,32 @@ class TFProcess:
                                        name='residual_{}'.format(i + 1))
 
         # Policy head
-        if self.POLICY_HEAD == pb.NetworkFormat.POLICY_CONVOLUTION:
+        if self.POLICY_HEAD == pb.NetworkFormat.POLICY_RA:
+            conv_pol = self.conv_block(flow,
+                                       filter_size=1,
+                                       output_channels=self.RESIDUAL_FILTERS,
+                                       name='policy')
+            conv_pol = tf.keras.layers.Permute((2, 3, 1))(conv_pol)
+            keys = tf.keras.layers.Dense(self.RESIDUAL_FILTERS,
+                                                                                   kernel_initializer='glorot_normal',
+                                          kernel_regularizer=self.l2reg, name='policy/keys/dense')(conv_pol)
+            keys = tf.reshape(keys, [-1, 64, self.RESIDUAL_FILTERS])
+            queries = tf.keras.layers.Dense(self.RESIDUAL_FILTERS,
+                                                                                   kernel_initializer='glorot_normal',
+                                          kernel_regularizer=self.l2reg, name='policy/queries/dense')(conv_pol)
+            queries = tf.reshape(queries, [-1, 64, self.RESIDUAL_FILTERS])
+            queries = tf.multiply(queries, 1.0 / math.sqrt(float(self.RESIDUAL_FILTERS)))
+            qk = tf.linalg.matmul(keys, queries, transpose_b=True)
+            qk = tf.reshape(qk, [-1, 8, 8, 64])
+            mix = tf.concat([qk, conv_pol], axis=-1)
+
+            h_conv_pol_flat = tf.keras.layers.Flatten()(mix)
+            h_fc1 = tf.keras.layers.Dense(1858,
+                                          kernel_initializer='glorot_normal',
+                                          kernel_regularizer=self.l2reg,
+                                          bias_regularizer=self.l2reg,
+                                          name='policy/dense')(h_conv_pol_flat)
+        elif self.POLICY_HEAD == pb.NetworkFormat.POLICY_CONVOLUTION:
             conv_pol = self.conv_block(flow,
                                        filter_size=3,
                                        output_channels=self.RESIDUAL_FILTERS,
