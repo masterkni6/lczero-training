@@ -26,7 +26,7 @@ import lc0_az_policy_map
 import proto.net_pb2 as pb
 from functools import reduce
 import operator
-
+import tensorflow_addons as tfa
 from net import Net
 
 
@@ -102,6 +102,7 @@ class TFProcess:
         # Network structure
         self.RESIDUAL_FILTERS = self.cfg['model']['filters']
         self.RESIDUAL_BLOCKS = self.cfg['model']['residual_blocks']
+        self.STOCHASTIC = self.cfg['training'].get('stochastic', False)
         self.SE_ratio = self.cfg['model']['se_ratio']
         self.policy_channels = self.cfg['model'].get('policy_channels', 32)
         precision = self.cfg['training'].get('precision', 'single')
@@ -1104,8 +1105,12 @@ class TFProcess:
                                                        scale=True),
                                        channels,
                                        name=name + '/se')
-        return tf.keras.layers.Activation('relu')(tf.keras.layers.add(
-            [inputs, out2]))
+        if self.STOCHASTIC is True:
+            print("using stochastic")
+            return tf.keras.layers.Activation('relu')(tfa.layers.StochasticDepth()([inputs, out2]))
+        else:
+            return tf.keras.layers.Activation('relu')(tf.keras.layers.add(
+                [inputs, out2]))
 
     def construct_net(self, inputs):
         flow = self.conv_block(inputs,
