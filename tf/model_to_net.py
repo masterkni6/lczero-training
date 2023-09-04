@@ -25,7 +25,6 @@ steps = tfp.global_step.read_value().numpy()
 leela_path = path + "-" + str(steps)
 swa_path = path + "-swa-" + str(steps)
 tfp.net.pb.training_params.training_steps = steps
-tfp.save_leelaz_weights(leela_path)
+#tfp.save_leelaz_weights(leela_path)
 if tfp.swa_enabled:
     tfp.save_swa_weights(swa_path)
-
