@@ -87,7 +87,7 @@ model:
     smolgen_activation: 'swish'
     
 distill:
-  use_distill: false
+  use_distill: true
   teacher_name: 't1-smolgen-768x13x12hx1024gz' 
   distill_alpha: 0.2
   distill_temp: 4

@@ -49,7 +49,7 @@ def get_all_chunks(path):
 
 def get_latest_chunks(path, num_chunks, allow_less, sort_key_fn, dump_file=None):
 
-    if True and dump_file is not None and os.path.isfile(dump_file):
+    if False and dump_file is not None and os.path.isfile(dump_file):
         import pickle
         print(f"Dump file {dump_file} exists")
         if os.path.isfile(dump_file):
