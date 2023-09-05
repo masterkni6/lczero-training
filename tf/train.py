@@ -85,12 +85,12 @@ def get_latest_chunks(path, num_chunks, allow_less, sort_key_fn, dump_file=None)
                                        os.path.basename(chunks[0])))
                 random.shuffle(chunks)
                 print("shuffle completed")
-                if not os.path.isfile(dump_file):
-                    print("creating dump file")
-                    import pickle
-                    with open(dump_file, "wb") as fp:   #Pickling
-                        pickle.dump(chunks, fp)
-                        print(f"dumping...{dump_file}")
+                #if not os.path.isfile(dump_file):
+                #    print("creating dump file")
+                #    import pickle
+                #    with open(dump_file, "wb") as fp:   #Pickling
+                #        pickle.dump(chunks, fp)
+                #        print(f"dumping...{dump_file}")
                 return chunks
             else:
                 print("Not enough chunks {}".format(len(chunks)))
